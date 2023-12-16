@@ -8,11 +8,11 @@ from PIL import ImageDraw
 from utils.tools import box_prompt, format_results, point_prompt
 from utils.tools_gradio import fast_process
 
-# Most of our demo code is from [FastSAM Demo](https://huggingface.co/spaces/An-619/FastSAM). Huge thanks for AN-619.
+
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-# Load the pre-trained model
+
 sam_checkpoint = "../weights/mobile_sam.pt"
 model_type = "vit_t"
 
@@ -24,22 +24,13 @@ mask_generator = SamAutomaticMaskGenerator(mobile_sam)
 predictor = SamPredictor(mobile_sam)
 
 # Description
-title = "<center><strong><font size='8'>Faster Segment Anything(MobileSAM)<font></strong></center>"
+title = "<center><strong><font size='8'>MobileSAM<font></strong></center>"
 
-description_e = """This is a demo of [Faster Segment Anything(MobileSAM) Model](https://github.com/ChaoningZhang/MobileSAM).
-
-                   We will provide box mode soon. 
-
-                   Enjoy!
+description_e = """
                 
               """
 
-description_p = """ # Instructions for point mode
-
-                0. Restart by click the Restart button
-                1. Select a point with Add Mask for the foreground (Must)
-                2. Select a point with Remove Area for the background (Optional)
-                3. Click the Start Segmenting.
+description_p = """ 
 
               """
 
@@ -170,7 +161,7 @@ def get_points_with_draw(image, label, evt: gr.SelectData):
 
     print(x, y, label == "Add Mask")
 
-    # 创建一个可以在图像上绘图的对象
+
     draw = ImageDraw.Draw(image)
     draw.ellipse(
         [(x - point_radius, y - point_radius), (x + point_radius, y + point_radius)],
@@ -203,63 +194,13 @@ with gr.Blocks(css=css, title="Faster Segment Anything(MobileSAM)") as demo:
     with gr.Row():
         with gr.Column(scale=1):
             # Title
-            gr.Markdown(title)
+            gr.Markdown('''
+        <h1 style="text-align: center;">Segment and Edit/Remove</h1>
+        <h3 style="text-align: center;">DSG, IIT Roorkee</h3>
+        <br> <br>
+    ''')
 
-    # with gr.Tab("Everything mode"):
-    #     # Images
-    #     with gr.Row(variant="panel"):
-    #         with gr.Column(scale=1):
-    #             cond_img_e.render()
-    #
-    #         with gr.Column(scale=1):
-    #             segm_img_e.render()
-    #
-    #     # Submit & Clear
-    #     with gr.Row():
-    #         with gr.Column():
-    #             input_size_slider.render()
-    #
-    #             with gr.Row():
-    #                 contour_check = gr.Checkbox(
-    #                     value=True,
-    #                     label="withContours",
-    #                     info="draw the edges of the masks",
-    #                 )
-    #
-    #                 with gr.Column():
-    #                     segment_btn_e = gr.Button(
-    #                         "Segment Everything", variant="primary"
-    #                     )
-    #                     clear_btn_e = gr.Button("Clear", variant="secondary")
-    #
-    #             gr.Markdown("Try some of the examples below ⬇️")
-    #             gr.Examples(
-    #                 examples=examples,
-    #                 inputs=[cond_img_e],
-    #                 outputs=segm_img_e,
-    #                 fn=segment_everything,
-    #                 cache_examples=True,
-    #                 examples_per_page=4,
-    #             )
-    #
-    #         with gr.Column():
-    #             with gr.Accordion("Advanced options", open=False):
-    #                 # text_box = gr.Textbox(label="text prompt")
-    #                 with gr.Row():
-    #                     mor_check = gr.Checkbox(
-    #                         value=False,
-    #                         label="better_visual_quality",
-    #                         info="better quality using morphologyEx",
-    #                     )
-    #                     with gr.Column():
-    #                         retina_check = gr.Checkbox(
-    #                             value=True,
-    #                             label="use_retina",
-    #                             info="draw high-resolution segmentation masks",
-    #                         )
-    #             # Description
-    #             gr.Markdown(description_e)
-    #
+   
     with gr.Tab("Point mode"):
         # Images
         with gr.Row(variant="panel"):
@@ -274,15 +215,21 @@ with gr.Blocks(css=css, title="Faster Segment Anything(MobileSAM)") as demo:
             with gr.Column():
                 with gr.Row():
                     add_or_remove = gr.Radio(
-                        ["Add Mask", "Remove Area"],
+                        label='Point Prompts',
+                        choices=["Add Mask", "Remove Area"],
                         value="Add Mask",
+                        info='Positive points are included in the segment,negative points are excluded'
+
                     )
 
-                    with gr.Column():
-                        segment_btn_p = gr.Button(
-                            "Start segmenting!", variant="primary"
-                        )
-                        clear_btn_p = gr.Button("Restart", variant="secondary")
+                    text_prompt = gr.Textbox(
+                    label="Text Prompts",
+                    lines=6,
+                    interactive=True
+                )
+                # with gr.Row():
+                    # with gr.Column():
+            
 
                 gr.Markdown("Try some of the examples below ⬇️")
                 gr.Examples(
@@ -295,6 +242,10 @@ with gr.Blocks(css=css, title="Faster Segment Anything(MobileSAM)") as demo:
                 )
 
             with gr.Column():
+                segment_btn_p = gr.Button(
+                    "Start segmenting", variant="primary"
+                )
+                clear_btn_p = gr.Button("Restart", variant="secondary")
                 # Description
                 gr.Markdown(description_p)
 
@@ -326,4 +277,6 @@ with gr.Blocks(css=css, title="Faster Segment Anything(MobileSAM)") as demo:
     clear_btn_p.click(clear, outputs=[cond_img_p, segm_img_p])
 
 demo.queue()
-demo.launch()
+demo.launch(share=True)
+
+
